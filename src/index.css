@@ -1,0 +1,16 @@
+.del-button {
+    background-color: black;
+    color: white
+}
+.del-button:hover {
+    background-color: rgb(192, 26, 26);
+    color: white
+}
+.edit-button {
+    background-color: black;
+    color: white
+}
+.edit-button:hover {
+    background-color: rgb(178, 157, 22);
+    color: white
+}
