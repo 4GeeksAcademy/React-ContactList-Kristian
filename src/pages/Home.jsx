@@ -8,7 +8,6 @@ export const Home = () => {
 
 	const [list, setList] = useState([]);
 	const [agenda, setAgenda] = useState("");
-	const [isAgendaCreated, setIsAgendaCreated] = useState(false);
 	const { store, dispatch } = useGlobalReducer()
 
 	const handleCreateAgenda = () => {
@@ -19,11 +18,11 @@ export const Home = () => {
 		})
 			.then(res => {
 				if (res.ok) {
-					setIsAgendaCreated(true);
+					dispatch({ type: "set_agenda_created", payload: true });
 					getContacts();
 				} else {
 					alert("This agenda is already created");
-					setIsAgendaCreated(true);
+					dispatch({ type: "set_agenda_created", payload: true });
 					getContacts();
 				}
 			})
@@ -59,8 +58,40 @@ export const Home = () => {
 	};
 
 	return (
-		<div className="text-center mt-5">
+		<div className="container text-center mt-5">
 			<h1>Contact List</h1>
+
+			{!store.isAgendaCreated ? (
+				<div className="mt-4">
+					<h4>Enter your agenda name</h4>
+					<div className="input-group mb-3 justify-content-center">
+						<input
+							type="text"
+							className="form-control w-50"
+							value={agenda}
+							onChange={(e) => setAgenda(e.target.value)}
+						/>
+						<button className="btn btn-primary" onClick={handleCreateAgenda}>
+							Continue
+						</button>
+					</div>
+				</div>
+			) : (
+				<div className="mt-4">
+					{list.length > 0 ? (
+						list.map((contact) => (
+							<ContactCard
+								key={contact.id}
+								contact={contact}
+								onEdit={handleEdit}
+								onDelete={handleDelete}
+							/>
+						))
+					) : (
+						<p className="text-muted">No contacts yet. Add your first one!</p>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }; 
