@@ -13,7 +13,7 @@ export const Home = () => {
 	const { store, dispatch } = useGlobalReducer()
 	const agendaSlug = store.agendaSlug;
 
-	const handleCreateAgenda = () => {
+	const handleCreateAgenda = async () => {
 		if (!agenda.trim()) {
 			alert("Please enter a valid agenda name.");
 			return;
@@ -28,19 +28,22 @@ export const Home = () => {
 				if (res.ok) {
 					dispatch({ type: "set_agenda_created", payload: true });
 					dispatch({ type: "set_agenda_slug", payload: agenda });
-					getContacts();
+					getContacts(agenda);
 				} else {
 					alert("This agenda is already created");
 					dispatch({ type: "set_agenda_created", payload: true });
 					dispatch({ type: "set_agenda_slug", payload: agenda });
-					getContacts();
+					getContacts(agenda);
 				}
 			})
 			.catch(err => console.error("There was an error creating agenda:", err));
 	};
 
 	const handleDelete = (contactId) => {
-		fetch(`https://playground.4geeks.com/contact/agendas/${agenda}/contacts/${contactId}`, {
+		const confirmed = window.confirm("Are you sure?");
+		if (!confirmed) return;
+
+		fetch(`https://playground.4geeks.com/contact/agendas/${store.agendaSlug}/contacts/${contactId}`, {
 			method: "DELETE"
 		})
 			.then(() => getContacts())
@@ -52,8 +55,8 @@ export const Home = () => {
 		navigate(`/contactform/${contactId}`, { state: { contact: selectedContact } });
 	};
 
-	const getContacts = () => {
-		fetch(`https://playground.4geeks.com/contact/agendas/${agenda}/contacts`)
+	const getContacts = (slug = agendaSlug) => {
+		fetch(`https://playground.4geeks.com/contact/agendas/${slug}/contacts`)
 			.then(res => res.json())
 			.then(data => {
 				if (Array.isArray(data)) {
@@ -70,17 +73,24 @@ export const Home = () => {
 
 	useEffect(() => {
 		const fetchContacts = async () => {
+			if (!agendaSlug) return;
 			try {
 				const res = await fetch(`https://playground.4geeks.com/contact/agendas/${agendaSlug}/contacts`);
 				const data = await res.json();
-				setList(data.contacts);
+				if (Array.isArray(data.contacts)) {
+					setList(data.contacts);
+				} else if (Array.isArray(data)) {
+					setList(data);
+				} else {
+					console.error("Unexpected data structure:", data);
+				}
 			} catch (err) {
 				console.error("Error fetching contacts", err);
 			}
 		};
 
 		fetchContacts();
-	}, [location]);
+	}, [agendaSlug]);
 
 	return (
 		<div className="container text-center mt-5">
@@ -103,18 +113,20 @@ export const Home = () => {
 				</div>
 			) : (
 				<div className="mt-4 d-flex justify-content-center">
-					{list.length > 0 ? (
-						list.map((contact) => (
-							<ContactCard
-								key={contact.id}
-								contact={contact}
-								onEdit={handleEdit}
-								onDelete={handleDelete}
-							/>
-						))
-					) : (
-						<p className="text-muted">No contacts yet. Add your first one!</p>
-					)}
+					<div class="d-flex flex-column">
+						{list.length > 0 ? (
+							list.map((contact) => (
+								<ContactCard
+									key={contact.id}
+									contact={contact}
+									onEdit={handleEdit}
+									onDelete={handleDelete}
+								/>
+							))
+						) : (
+							<p className="text-muted">No contacts yet. Add your first one!</p>
+						)}
+					</div>
 				</div>
 			)}
 		</div>
