@@ -19,10 +19,12 @@ export const Home = () => {
 			.then(res => {
 				if (res.ok) {
 					dispatch({ type: "set_agenda_created", payload: true });
+					dispatch({ type: "set_agenda_slug", payload: agenda });
 					getContacts();
 				} else {
 					alert("This agenda is already created");
 					dispatch({ type: "set_agenda_created", payload: true });
+					dispatch({ type: "set_agenda_slug", payload: agenda });
 					getContacts();
 				}
 			})

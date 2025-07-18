@@ -1,6 +1,7 @@
 export const initialStore = () => {
   return {
     isAgendaCreated: false,
+    agendaSlug: "",
     message: null,
     todos: [
       {
@@ -32,6 +33,12 @@ export default function storeReducer(store, action = {}) {
       return {
         ...store,
         isAgendaCreated: action.payload
+      };
+
+    case "set_agenda_slug":
+      return {
+        ...store,
+        agendaSlug: action.payload
       };
     default:
       throw Error('Unknown action.');
