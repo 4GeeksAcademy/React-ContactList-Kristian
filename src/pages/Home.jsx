@@ -1,16 +1,24 @@
 import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { ContactCard } from "../components/ContactCard";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const Home = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [list, setList] = useState([]);
 	const [agenda, setAgenda] = useState("");
 	const { store, dispatch } = useGlobalReducer()
+	const agendaSlug = store.agendaSlug;
 
 	const handleCreateAgenda = () => {
+		if (!agenda.trim()) {
+			alert("Please enter a valid agenda name.");
+			return;
+		}
+
 		fetch(`https://playground.4geeks.com/contact/agendas/${agenda}`, {
 			method: "POST",
 			body: JSON.stringify([]),
@@ -32,7 +40,7 @@ export const Home = () => {
 	};
 
 	const handleDelete = (contactId) => {
-		fetch(`https://playground.4geeks.com/contact/agendas/${agenda}/${contactId}`, {
+		fetch(`https://playground.4geeks.com/contact/agendas/${agenda}/contacts/${contactId}`, {
 			method: "DELETE"
 		})
 			.then(() => getContacts())
@@ -40,7 +48,8 @@ export const Home = () => {
 	};
 
 	const handleEdit = (contactId) => {
-		navigate(`/contactform/${contactId}`)
+		const selectedContact = list.find(contact => contact.id === contactId);
+		navigate(`/contactform/${contactId}`, { state: { contact: selectedContact } });
 	};
 
 	const getContacts = () => {
@@ -58,6 +67,20 @@ export const Home = () => {
 			})
 			.catch(err => console.error("There was an error getting contacts:", err));
 	};
+
+	useEffect(() => {
+		const fetchContacts = async () => {
+			try {
+				const res = await fetch(`https://playground.4geeks.com/contact/agendas/${agendaSlug}/contacts`);
+				const data = await res.json();
+				setList(data.contacts);
+			} catch (err) {
+				console.error("Error fetching contacts", err);
+			}
+		};
+
+		fetchContacts();
+	}, [location]);
 
 	return (
 		<div className="container text-center mt-5">
@@ -79,7 +102,7 @@ export const Home = () => {
 					</div>
 				</div>
 			) : (
-				<div className="mt-4">
+				<div className="mt-4 d-flex justify-content-center">
 					{list.length > 0 ? (
 						list.map((contact) => (
 							<ContactCard
